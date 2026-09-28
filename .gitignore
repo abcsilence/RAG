@@ -1,0 +1,13 @@
+# Secrets and local tools
+.env
+.claude/
+
+# Python
+.venv/
+__pycache__/
+
+# Built by ingest.py (run it after cloning)
+data/
+
+# macOS
+.DS_Store

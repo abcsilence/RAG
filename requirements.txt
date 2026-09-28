@@ -1,0 +1,8 @@
+fastapi>=0.141
+faiss-cpu>=1.15
+groq>=1.7
+pypdf>=6.19
+python-dotenv>=1.2
+rank-bm25>=0.2
+sentence-transformers>=6.1
+uvicorn>=0.54

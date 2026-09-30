@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import Markdown from 'react-markdown'
 import Logo from './Logo'
-import Sources from './Sources'
 
 export default function Message({ message }) {
   if (message.role === 'user') {
@@ -12,8 +11,7 @@ export default function Message({ message }) {
     )
   }
 
-  const { content, sources, status, error } = message
-  const finished = ['done', 'stopped', 'error'].includes(status)
+  const { content, status, error } = message
   return (
     <div className="message assistant">
       <div className="avatar">
@@ -21,7 +19,6 @@ export default function Message({ message }) {
       </div>
       <div className="message-body">
         {status === 'searching' && <Working text="Searching the Constitution" />}
-        {status === 'writing' && !content && <Working text="Writing the answer" />}
         {content && (
           <div className={`markdown ${status === 'writing' ? 'writing' : ''}`}>
             <Markdown>{content}</Markdown>
@@ -33,7 +30,6 @@ export default function Message({ message }) {
             {error}
           </p>
         )}
-        {finished && sources.length > 0 && <Sources sources={sources} />}
         {status === 'done' && content && <CopyButton text={content} />}
       </div>
     </div>

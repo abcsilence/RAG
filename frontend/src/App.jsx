@@ -7,7 +7,7 @@ import Welcome from './components/Welcome'
 
 export default function App() {
   // Messages alternate question / answer: {id, role, content}, and answers also have
-  // sources, error and a status: "searching" -> "writing" -> "done" (or "stopped" / "error").
+  // an error and a status: "searching" -> "writing" -> "done" (or "stopped" / "error").
   const [messages, setMessages] = useState([])
   const [busy, setBusy] = useState(false)
   const controller = useRef(null) // lets the Stop button cancel the answer being written
@@ -45,7 +45,7 @@ export default function App() {
     setMessages((list) => [
       ...list,
       { id: id - 1, role: 'user', content: question },
-      { id, role: 'assistant', content: '', sources: [], status: 'searching', error: null },
+      { id, role: 'assistant', content: '', status: 'searching', error: null },
     ])
     followOutput.current = true
     setBusy(true)
@@ -58,8 +58,7 @@ export default function App() {
         history,
         signal: request.signal,
         onEvent: (event) => {
-          if (event.type === 'sources') updateAnswer(id, () => ({ sources: event.sources, status: 'writing' }))
-          if (event.type === 'text') updateAnswer(id, (m) => ({ content: m.content + event.text }))
+          if (event.type === 'text') updateAnswer(id, (m) => ({ content: m.content + event.text, status: 'writing' }))
           if (event.type === 'done') updateAnswer(id, () => ({ status: 'done' }))
           if (event.type === 'error') updateAnswer(id, () => ({ status: 'error', error: event.message }))
         },
@@ -117,8 +116,8 @@ export default function App() {
       <footer className="composer-area">
         <Composer busy={busy} onSend={send} onStop={() => controller.current?.abort()} />
         <p className="disclaimer">
-          Answers come only from the text of the Constitution and can be wrong. Check the sources. Not legal
-          advice.
+          Answers come only from the text of the Constitution and can be wrong. Check the cited Articles. Not
+          legal advice.
         </p>
       </footer>
     </>

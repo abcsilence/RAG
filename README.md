@@ -67,6 +67,6 @@ frontend/      React + Vite chat
 
 ## Limits
 
-- Answers can be wrong: check the sources shown under each answer. This is not legal advice.
+- Answers can be wrong: check the Articles each answer cites. This is not legal advice.
 - Search works in English. Nepali only works for number lookups like "धारा 17".
 - The Constitution calls the provinces "Province No. 1" to "No. 7", so province names are not found.

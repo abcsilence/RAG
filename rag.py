@@ -147,20 +147,21 @@ def format_context(chunks):
 
 
 def ask(client, retriever, question, history):
-    """Answer a question. Returns (a stream of answer text pieces, the chunks used as sources).
+    """Answer a question, as a stream of text pieces. The answer cites the Articles it uses.
     history holds the earlier turns as {"role": "user" or "assistant", "content": ...} dicts."""
     history = history[-2 * config.MAX_HISTORY_TURNS :]
     search_query = rewrite_question(client, question, history) if history else question
-    sources = retriever.search(search_query)
+    # These chunks are what the LLM reads, not a list of sources: most are only near matches.
+    chunks = retriever.search(search_query)
     messages = [
         {"role": "system", "content": SYSTEM_PROMPT},
         *history,
-        {"role": "user", "content": f"Context:\n{format_context(sources)}\n\nQuestion: {question}"},
+        {"role": "user", "content": f"Context:\n{format_context(chunks)}\n\nQuestion: {question}"},
     ]
     response = client.chat.completions.create(
         model=config.LLM_MODEL, messages=messages, stream=True, **llm_options()
     )
-    return stream_text(response), sources
+    return stream_text(response)
 
 
 def stream_text(response):
@@ -180,14 +181,6 @@ def stream_text(response):
             yield ready
     if pending:
         yield pending
-
-
-def list_sources(chunks):
-    """Unique citations, e.g. "Article 17 – Right to Freedom (page 8)"."""
-    pages = {}
-    for chunk in chunks:
-        pages.setdefault(chunk["source"], chunk["page"])
-    return [f"{source} (page {page})" if page else source for source, page in pages.items()]
 
 
 # ---------- API key and errors ----------
@@ -228,17 +221,15 @@ def chat_in_terminal():
         if not question:
             continue
         try:
-            stream, sources = ask(client, retriever, question, history)
             print("\nBot: ", end="", flush=True)
             answer = ""
-            for text in stream:
+            for text in ask(client, retriever, question, history):
                 print(text, end="", flush=True)
                 answer += text
             print()
         except groq.APIError as error:
             print(f"\n{explain_error(error)}")
             continue
-        print("\nSources:\n" + "\n".join(f"  - {s}" for s in list_sources(sources)))
         history += [{"role": "user", "content": question}, {"role": "assistant", "content": answer}]
 
 

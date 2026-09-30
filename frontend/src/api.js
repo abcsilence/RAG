@@ -1,7 +1,7 @@
 const SERVER_DOWN = "Can't reach the chatbot server. Start it with: uvicorn server:app --reload"
 
 // Sends a question to the Python API (server.py) and calls onEvent for each line of the reply:
-// {type: "sources"} first, then {type: "text"} pieces, then {type: "done"} or {type: "error"}.
+// {type: "text"} pieces, then {type: "done"} or {type: "error"}.
 export async function streamChat({ question, history, signal, onEvent }) {
   let response
   try {

@@ -38,26 +38,15 @@ class ChatRequest(BaseModel):
     history: list[Message] = []
 
 
-def group_sources(chunks):
-    """One entry per Article or Schedule, with the text of every chunk that was used."""
-    grouped = {}
-    for chunk in chunks:
-        entry = grouped.setdefault(chunk["source"], {"title": chunk["source"], "page": chunk["page"], "texts": []})
-        entry["texts"].append(chunk["text"])
-    return [{"title": e["title"], "page": e["page"], "text": "\n\n".join(e["texts"])} for e in grouped.values()]
-
-
 @app.post("/api/chat")
 def chat(request: ChatRequest):
-    """Streams the answer as JSON lines: {"type": "sources"} first, then {"type": "text"}
-    pieces, then {"type": "done"}, or {"type": "error"} if Groq fails."""
+    """Streams the answer as JSON lines: {"type": "text"} pieces, then {"type": "done"},
+    or {"type": "error"} if Groq fails."""
 
     def events():
         try:
             history = [message.model_dump() for message in request.history]
-            stream, sources = ask(client, retriever, request.question, history)
-            yield json.dumps({"type": "sources", "sources": group_sources(sources)}) + "\n"
-            for text in stream:
+            for text in ask(client, retriever, request.question, history):
                 yield json.dumps({"type": "text", "text": text}) + "\n"
             yield json.dumps({"type": "done"}) + "\n"
         except groq.APIError as error:
